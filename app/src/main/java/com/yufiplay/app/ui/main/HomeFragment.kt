@@ -85,7 +85,22 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupSearchBarAndHistory() {
-        searchHistoryAdapter = SearchHistoryAdapter()
+        searchHistoryAdapter = SearchHistoryAdapter(
+            onItemClick = { query ->
+                binding.etSearch.setText(query)
+                binding.cardSearchHistory.visibility = View.GONE
+                hideKeyboard()
+                handleSearchOrUrl(query)
+            },
+            onDeleteClick = { query ->
+                recentSearches.remove(query)
+                searchHistoryAdapter.submitList(recentSearches.toList())
+                if (recentSearches.isEmpty()) {
+                    binding.cardSearchHistory.visibility = View.GONE
+                }
+            }
+        )
+
         binding.rvSearchHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchHistory.adapter = searchHistoryAdapter
 
@@ -219,6 +234,7 @@ class HomeFragment : Fragment() {
     private fun handleSearchOrUrl(input: String) {
         recentSearches.remove(input)
         recentSearches.add(0, input)
+        searchHistoryAdapter.submitList(recentSearches.toList())
 
         if (isDirectUrl(input)) {
             binding.cardDirectUrlResult.visibility = View.VISIBLE
