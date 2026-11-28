@@ -4,136 +4,215 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="18dp">
+    android:padding="16dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/download_quality_title"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvSheetVideoTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="13sp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/video_mp4_section"
-        android:textColor="@color/yufi_crimson"
-        android:textSize="13sp"
-        android:textStyle="bold" />
-
-    <GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:columnCount="3">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn144p"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="144p" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn240p"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="240p" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn360p"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="360p" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn480p"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="480p" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn720p"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="720p HD"
-            app:backgroundTint="@color/yufi_crimson" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn1080p"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:text="1080p FHD"
-            app:backgroundTint="@color/yufi_crimson" />
-    </GridLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:text="@string/audio_mp3_section"
-        android:textColor="@color/yufi_cyan"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="14dp"
+        android:alpha="0.3"
+        android:background="?attr/colorOnSurface" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMp3128"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:text="128k MP3" />
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivSheetThumb"
+            android:layout_width="112dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_yufiplay_logo"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMp3192"
-            style="@style/Widget.Material3.Button.TonalButton"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="192k MP3" />
+            android:orientation="vertical">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMp3320"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:text="320k MP3" />
+            <TextView
+                android:id="@+id/tvSheetTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="Video Title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSheetMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.7"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Channel • Duration"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Select Download Quality"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/progressSizes"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="280dp"
+        android:layout_marginTop="8dp"
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical">
+
+        <RadioGroup
+            android:id="@+id/radioGroupFormats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:text="VIDEO (MP4)"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/rbOriginal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Original Quality (Best)"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb4K"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="4K Ultra HD (2160p)"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb2K"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2K QHD (1440p)"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb1080p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1080p Full HD MP4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb720p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="720p HD MP4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb480p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="480p SD MP4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb360p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="360p MP4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb240p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="240p MP4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rb144p"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="144p MP4"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp"
+                android:text="MUSIC (MP3 AUDIO)"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/rbMp3320"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="320kbps MP3 Music"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rbMp3192"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="192kbps MP3 Music"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/rbMp3128"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="128kbps MP3 Music"
+                android:textSize="14sp" />
+        </RadioGroup>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartDownload"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:text="Download Now"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp" />
 
 </LinearLayout>
