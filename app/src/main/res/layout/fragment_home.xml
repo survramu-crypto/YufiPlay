@@ -61,8 +61,7 @@
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp"
-            app:endIconMode="clear_text">
+            app:boxCornerRadiusTopStart="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etSearch"
@@ -74,8 +73,19 @@
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <ImageButton
+            android:id="@+id/btnClearSearch"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Clear Search"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:visibility="gone"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPasteUrl"
+            android:id="@+id/btnPasteLink"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="44dp"
@@ -91,12 +101,31 @@
             android:id="@+id/btnSearchGo"
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Search or Download"
             android:src="@drawable/ic_search"
             app:tint="?attr/colorPrimary" />
     </LinearLayout>
+
+    <!-- Search History Suggestions Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSearchHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="6dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="180dp"
+            android:paddingVertical="4dp" />
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Category Filter Chips -->
     <HorizontalScrollView
@@ -119,37 +148,42 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
+                android:text="All" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipTrending"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Trending" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipMusic"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Music" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipShayari"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Movies" />
+                android:text="Shayari" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipGaming"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Gaming" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipMovies"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tech" />
-
-            <com.google.android.material.chip.Chip
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="News" />
+                android:text="Movies" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
