@@ -52,12 +52,18 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvStatuses"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshStatus"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="8dp" />
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStatusMedia"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <!-- Folder Permission Card -->
         <LinearLayout
@@ -89,7 +95,7 @@
                 android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGrantStatusAccess"
+                android:id="@+id/btnGrantStatusPermission"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginTop="16dp"
