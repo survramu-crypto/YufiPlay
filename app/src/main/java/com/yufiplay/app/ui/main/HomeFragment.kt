@@ -12,10 +12,13 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.yufiplay.app.R
+import com.yufiplay.app.data.HistoryRepository
 import com.yufiplay.app.data.SearchHistoryItem
 import com.yufiplay.app.data.VideoItem
 import com.yufiplay.app.databinding.FragmentHomeBinding
@@ -42,7 +45,7 @@ class HomeFragment : Fragment() {
     private var isLoadingMore = false
     private var refreshCounter = 0
     private val currentFeedList = mutableListOf<VideoItem>()
-    private val recentSearches = mutableListOf<SearchHistoryItem>()
+    private var recentSearches: List<SearchHistoryItem> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,6 +58,8 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        HistoryRepository.init(requireContext())
 
         videoAdapter = VideoAdapter(
             onPlayClick = { openPlayer(it) },
@@ -81,25 +86,36 @@ class HomeFragment : Fragment() {
         setupSearchBarAndHistory()
         setupCategoryChips()
         setupSwipeRefresh()
+        observeSearchHistory()
 
         loadFeed(buildPersonalizedSeedQuery(), count = currentFetchCount, reset = true)
+    }
+
+    private fun observeSearchHistory() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                HistoryRepository.searchHistoryFlow.collect { list ->
+                    recentSearches = list
+                    searchHistoryAdapter.submitList(list)
+                    if (list.isEmpty()) {
+                        binding.cardSearchHistory.visibility = View.GONE
+                    }
+                }
+            }
+        }
     }
 
     private fun setupSearchBarAndHistory() {
         searchHistoryAdapter = SearchHistoryAdapter(
             onItemClick = { item ->
-                val query = item.query
+                val query = item.queryOrUrl
                 binding.etSearch.setText(query)
                 binding.cardSearchHistory.visibility = View.GONE
                 hideKeyboard()
                 handleSearchOrUrl(query)
             },
             onDeleteClick = { item ->
-                recentSearches.remove(item)
-                searchHistoryAdapter.submitList(recentSearches.toList())
-                if (recentSearches.isEmpty()) {
-                    binding.cardSearchHistory.visibility = View.GONE
-                }
+                HistoryRepository.removeSearchHistory(requireContext(), item.queryOrUrl)
             }
         )
 
@@ -234,11 +250,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleSearchOrUrl(input: String) {
-        recentSearches.removeAll { it.query == input }
-        recentSearches.add(0, SearchHistoryItem(input))
-        searchHistoryAdapter.submitList(recentSearches.toList())
+        val urlFlag = isDirectUrl(input)
+        HistoryRepository.addSearchHistory(requireContext(), input, urlFlag)
 
-        if (isDirectUrl(input)) {
+        if (urlFlag) {
             binding.cardDirectUrlResult.visibility = View.VISIBLE
             binding.tvDirectUrlTitle.text = input
             binding.tvDirectUrlChannel.text = "Ready to Play or Download"
