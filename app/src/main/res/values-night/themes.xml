@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.YufiPlay" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/yufi_crimson</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">@color/yufi_cyan</item>
+        <item name="colorOnSecondary">@color/yufi_navy</item>
+        <item name="android:colorBackground">@color/yufi_navy</item>
+        <item name="colorSurface">@color/yufi_navy_card</item>
+        <item name="colorOnSurface">@color/yufi_text_primary_dark</item>
+        <item name="colorOnSurfaceVariant">@color/yufi_text_secondary_dark</item>
+        <item name="android:statusBarColor">@color/yufi_navy</item>
+        <item name="android:navigationBarColor">@color/yufi_navy_card</item>
+    </style>
+</resources>
