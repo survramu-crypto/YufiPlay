@@ -18,8 +18,60 @@ class DownloadAdapter(
     private val onCancelOrDeleteClick: (DownloadTask) -> Unit
 ) : ListAdapter<DownloadTask, DownloadAdapter.DownloadViewHolder>(DiffCallback) {
 
+    inner class DownloadViewHolder(private val binding: ItemDownloadBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(task: DownloadTask) {
+            binding.tvTitle.text = task.title
+            binding.tvFormat.text = task.format.label
+            binding.tvStatus.text = task.speedOrEta.ifBlank { task.status.name }
+
+            Glide.with(binding.ivThumb.context)
+                .load(task.thumbnailUrl)
+                .placeholder(R.drawable.ic_yufiplay_logo)
+                .centerCrop()
+                .into(binding.ivThumb)
+
+            when (task.status) {
+                DownloadStatus.COMPLETED -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.btnPlay.visibility = View.VISIBLE
+                    binding.btnShare.visibility = View.VISIBLE
+                    binding.btnCancel.setImageResource(android.R.drawable.ic_menu_delete)
+                }
+                DownloadStatus.FAILED, DownloadStatus.CANCELLED -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.btnPlay.visibility = View.GONE
+                    binding.btnShare.visibility = View.GONE
+                    binding.btnCancel.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+                }
+                else -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.progressBar.isIndeterminate = task.progress <= 0
+                    binding.progressBar.progress = task.progress
+                    binding.btnPlay.visibility = View.GONE
+                    binding.btnShare.visibility = View.GONE
+                    binding.btnCancel.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+                }
+            }
+
+            binding.root.setOnClickListener {
+                if (task.status == DownloadStatus.COMPLETED) {
+                    onPlayClick(task)
+                }
+            }
+            binding.btnPlay.setOnClickListener { onPlayClick(task) }
+            binding.btnShare.setOnClickListener { onShareClick(task) }
+            binding.btnCancel.setOnClickListener { onCancelOrDeleteClick(task) }
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DownloadViewHolder {
-        val binding = ItemDownloadBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemDownloadBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return DownloadViewHolder(binding)
     }
 
@@ -27,41 +79,13 @@ class DownloadAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class DownloadViewHolder(private val binding: ItemDownloadBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    companion object {
+        private val DiffCallback = object : DiffUtil.ItemCallback<DownloadTask>() {
+            override fun areItemsTheSame(oldItem: DownloadTask, newItem: DownloadTask): Boolean =
+                oldItem.taskId == newItem.taskId
 
-        fun bind(task: DownloadTask) {
-            binding.tvDownloadTitle.text = task.title
-            binding.tvDownloadMeta.text = "${task.format.label} • ${task.speedOrEta}"
-
-            Glide.with(binding.ivDownloadThumb)
-                .load(task.thumbnailUrl)
-                .placeholder(R.drawable.ic_yufiplay_logo)
-                .centerCrop()
-                .into(binding.ivDownloadThumb)
-
-            val isCompleted = task.status == DownloadStatus.COMPLETED
-            binding.progressDownload.visibility = if (isCompleted) View.GONE else View.VISIBLE
-            binding.progressDownload.progress = task.progress
-            binding.btnShareFile.visibility = if (isCompleted) View.VISIBLE else View.GONE
-
-            binding.btnActionFile.setImageResource(
-                if (isCompleted) R.drawable.ic_delete else R.drawable.ic_clear
-            )
-
-            binding.root.setOnClickListener {
-                if (isCompleted) onPlayClick(task)
-            }
-            binding.btnShareFile.setOnClickListener { onShareClick(task) }
-            binding.btnActionFile.setOnClickListener { onCancelOrDeleteClick(task) }
+            override fun areContentsTheSame(oldItem: DownloadTask, newItem: DownloadTask): Boolean =
+                oldItem == newItem
         }
-    }
-
-    companion object DiffCallback : DiffUtil.ItemCallback<DownloadTask>() {
-        override fun areItemsTheSame(oldItem: DownloadTask, newItem: DownloadTask) =
-            oldItem.taskId == newItem.taskId
-
-        override fun areContentsTheSame(oldItem: DownloadTask, newItem: DownloadTask) =
-            oldItem == newItem
     }
 }
