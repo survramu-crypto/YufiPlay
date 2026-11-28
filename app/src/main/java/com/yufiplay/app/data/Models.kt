@@ -45,6 +45,8 @@ enum class DownloadFormat(
     val audioBitrateKbps: Int = 0
 ) {
     ORIGINAL("Original Quality (Best)", false, heightLimit = 0),
+    MP4_4K("4K Ultra HD (2160p)", false, heightLimit = 2160),
+    MP4_2K("2K QHD (1440p)", false, heightLimit = 1440),
     MP4_1080("1080p Full HD MP4", false, heightLimit = 1080),
     MP4_720("720p HD MP4", false, heightLimit = 720),
     MP4_480("480p SD MP4", false, heightLimit = 480),
