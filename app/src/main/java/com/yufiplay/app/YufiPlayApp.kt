@@ -42,6 +42,18 @@ class YufiPlayApp : Application() {
                 FFmpeg.getInstance().init(applicationContext)
                 engineReady.complete(true)
                 Log.i(TAG, "YoutubeDL and FFmpeg initialized successfully")
+
+                // Auto-check nightly yt-dlp update once every 12 hours to prevent HTTP 400
+                val now = System.currentTimeMillis()
+                if (now - prefs.lastEngineUpdateCheck > 12 * 60 * 60 * 1000L) {
+                    prefs.lastEngineUpdateCheck = now
+                    runCatching {
+                        YoutubeDL.getInstance().updateYoutubeDL(
+                            applicationContext,
+                            YoutubeDL.UpdateChannel._NIGHTLY
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize YoutubeDL/FFmpeg", e)
                 engineReady.complete(false)
@@ -58,7 +70,7 @@ class YufiPlayApp : Application() {
                 "YufiPlay Downloads",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Shows real-time video & audio download progress"
+                description = "Shows real-time video & audio download progress and speed"
             }
             nm.createNotificationChannel(downloadChannel)
 
