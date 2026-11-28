@@ -4,13 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.yausername.youtubedl_android.YoutubeDL
-import com.yufiplay.app.R
+import com.yufiplay.app.data.DownloadFormat
 import com.yufiplay.app.data.PrefsManager
 import com.yufiplay.app.databinding.FragmentSettingsBinding
 import com.yufiplay.app.engine.YtDlpEngine
@@ -35,58 +37,152 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         prefs = PrefsManager(requireContext())
 
+        refreshUiState()
+        setupListeners()
+    }
+
+    private fun refreshUiState() {
+        binding.tvUserName.text = prefs.userName
         binding.switchDarkMode.isChecked = prefs.isDarkMode
+        binding.switchBackgroundAudio.isChecked = prefs.backgroundAudioEnabled
+        binding.switchAutoPlayNext.isChecked = prefs.autoPlayNext
+
+        val currentFormat = runCatching {
+            DownloadFormat.valueOf(prefs.defaultQualityName)
+        }.getOrDefault(DownloadFormat.ORIGINAL)
+        binding.tvSelectedQuality.text = currentFormat.label
+
+        binding.tvSelectedLanguage.text = when (prefs.languageCode) {
+            "hi" -> "हिन्दी (Hindi)"
+            else -> "English"
+        }
+    }
+
+    private fun setupListeners() {
+        binding.btnEditProfile.setOnClickListener {
+            showEditNameDialog()
+        }
+
         binding.switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
-            prefs.isDarkMode = isChecked
-            AppCompatDelegate.setDefaultNightMode(
-                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES
-                else AppCompatDelegate.MODE_NIGHT_NO
-            )
-        }
-
-        if (prefs.languageCode == "hi") {
-            binding.radioHindi.isChecked = true
-        } else {
-            binding.radioEnglish.isChecked = true
-        }
-
-        binding.radioGroupLanguage.setOnCheckedChangeListener { _, checkedId ->
-            val targetLang = if (checkedId == R.id.radioHindi) "hi" else "en"
-            if (targetLang != prefs.languageCode) {
-                prefs.languageCode = targetLang
-                AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(targetLang)
+            if (prefs.isDarkMode != isChecked) {
+                prefs.isDarkMode = isChecked
+                AppCompatDelegate.setDefaultNightMode(
+                    if (isChecked) AppCompatDelegate.MODE_NIGHT_YES
+                    else AppCompatDelegate.MODE_NIGHT_NO
                 )
             }
         }
 
+        binding.switchBackgroundAudio.setOnCheckedChangeListener { _, isChecked ->
+            prefs.backgroundAudioEnabled = isChecked
+        }
+
+        binding.switchAutoPlayNext.setOnCheckedChangeListener { _, isChecked ->
+            prefs.autoPlayNext = isChecked
+        }
+
+        binding.layoutDefaultQuality.setOnClickListener {
+            showDefaultQualityDialog()
+        }
+
+        binding.layoutLanguage.setOnClickListener {
+            showLanguageDialog()
+        }
+
         binding.btnUpdateEngine.setOnClickListener {
-            runEngineUpdate()
+            updateDownloadEngine()
+        }
+
+        binding.btnClearCache.setOnClickListener {
+            runCatching {
+                requireContext().cacheDir.deleteRecursively()
+                requireContext().getExternalFilesDir("work")?.deleteRecursively()
+            }
+            Toast.makeText(requireContext(), "App cache cleared", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun runEngineUpdate() {
-        binding.btnUpdateEngine.isEnabled = false
-        binding.progressEngineUpdate.visibility = View.VISIBLE
-        binding.tvEngineStatus.text = getString(R.string.updating_engine)
+    private fun showEditNameDialog() {
+        val input = EditText(requireContext()).apply {
+            setText(prefs.userName)
+            setSelection(text.length)
+            setPadding(48, 32, 48, 32)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Edit Profile Name")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = input.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    prefs.userName = newName
+                    binding.tvUserName.text = newName
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
 
+    private fun showDefaultQualityDialog() {
+        val formats = DownloadFormat.values()
+        val labels = formats.map { it.label }.toTypedArray()
+        val currentIdx = formats.indexOfFirst { it.name == prefs.defaultQualityName }.coerceAtLeast(0)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Default Download Quality")
+            .setSingleChoiceItems(labels, currentIdx) { dialog, which ->
+                val chosen = formats[which]
+                prefs.defaultQualityName = chosen.name
+                binding.tvSelectedQuality.text = chosen.label
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showLanguageDialog() {
+        val languages = arrayOf("English", "हिन्दी (Hindi)")
+        val codes = arrayOf("en", "hi")
+        val currentIdx = if (prefs.languageCode == "hi") 1 else 0
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("App Language")
+            .setSingleChoiceItems(languages, currentIdx) { dialog, which ->
+                val code = codes[which]
+                prefs.languageCode = code
+                binding.tvSelectedLanguage.text = languages[which]
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(code)
+                )
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updateDownloadEngine() {
+        binding.btnUpdateEngine.isEnabled = false
+        binding.tvEngineStatus.text = "Updating engine…"
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val status = YtDlpEngine.updateEngine(requireContext().applicationContext)
+                val status = YtDlpEngine.updateEngine(requireContext())
                 val msg = when (status) {
-                    YoutubeDL.UpdateStatus.DONE -> getString(R.string.engine_updated)
-                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> getString(R.string.engine_up_to_date)
-                    else -> getString(R.string.engine_up_to_date)
+                    YoutubeDL.UpdateStatus.DONE -> "Engine updated to latest nightly!"
+                    YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Engine is already up to date"
+                    else -> "Update check completed"
                 }
                 binding.tvEngineStatus.text = msg
                 Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                val err = e.message ?: "Update failed"
-                binding.tvEngineStatus.text = err
-                Toast.makeText(requireContext(), err, Toast.LENGTH_LONG).show()
+                binding.tvEngineStatus.text = "Update failed"
+                Toast.makeText(
+                    requireContext(),
+                    e.message ?: "Engine update failed",
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
-                binding.btnUpdateEngine.isEnabled = true
-                binding.progressEngineUpdate.visibility = View.GONE
+                if (_binding != null) {
+                    binding.btnUpdateEngine.isEnabled = true
+                }
             }
         }
     }
