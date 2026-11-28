@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.yufiplay.app.R
+import com.yufiplay.app.data.SearchHistoryItem
 import com.yufiplay.app.data.VideoItem
 import com.yufiplay.app.databinding.FragmentHomeBinding
 import com.yufiplay.app.engine.YtDlpEngine
@@ -41,7 +42,7 @@ class HomeFragment : Fragment() {
     private var isLoadingMore = false
     private var refreshCounter = 0
     private val currentFeedList = mutableListOf<VideoItem>()
-    private val recentSearches = mutableListOf<String>()
+    private val recentSearches = mutableListOf<SearchHistoryItem>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -86,14 +87,15 @@ class HomeFragment : Fragment() {
 
     private fun setupSearchBarAndHistory() {
         searchHistoryAdapter = SearchHistoryAdapter(
-            onItemClick = { query ->
+            onItemClick = { item ->
+                val query = item.query
                 binding.etSearch.setText(query)
                 binding.cardSearchHistory.visibility = View.GONE
                 hideKeyboard()
                 handleSearchOrUrl(query)
             },
-            onDeleteClick = { query ->
-                recentSearches.remove(query)
+            onDeleteClick = { item ->
+                recentSearches.remove(item)
                 searchHistoryAdapter.submitList(recentSearches.toList())
                 if (recentSearches.isEmpty()) {
                     binding.cardSearchHistory.visibility = View.GONE
@@ -232,8 +234,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleSearchOrUrl(input: String) {
-        recentSearches.remove(input)
-        recentSearches.add(0, input)
+        recentSearches.removeAll { it.query == input }
+        recentSearches.add(0, SearchHistoryItem(input))
         searchHistoryAdapter.submitList(recentSearches.toList())
 
         if (isDirectUrl(input)) {
