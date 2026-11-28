@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
-    <!-- Media access permissions -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
@@ -62,6 +61,10 @@
             android:launchMode="singleTop"
             android:supportsPictureInPicture="true" />
 
+        <activity
+            android:name=".ui.player.ChannelActivity"
+            android:exported="false" />
+
         <service
             android:name=".service.DownloadService"
             android:exported="false"
@@ -76,7 +79,6 @@
             </intent-filter>
         </service>
 
-        <!-- Backport per-app language storage on API < 33 -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
