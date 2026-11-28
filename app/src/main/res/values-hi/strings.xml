@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YufiPlay</string>
+    <string name="brand_uppercase">YUFIPLAY</string>
+    <string name="splash_tagline">स्ट्रीम • प्ले • सेव</string>
+
+    <string name="nav_home">होम</string>
+    <string name="nav_status">स्टेटस</string>
+    <string name="nav_downloads">डाउनलोड</string>
+    <string name="nav_history">इतिहास</string>
+    <string name="nav_settings">सेटिंग्स</string>
+
+    <string name="search_hint">खोजें या YT / Insta / FB लिंक पेस्ट करें</string>
+    <string name="paste_link">लिंक पेस्ट करें</string>
+    <string name="clear">साफ़ करें</string>
+    <string name="clipboard_detected_title">कॉपी किया गया लिंक मिला — अभी डाउनलोड करें?</string>
+    <string name="download">डाउनलोड</string>
+    <string name="dismiss">हटाएँ</string>
+    <string name="play">चलाएँ</string>
+    <string name="share">शेयर करें</string>
+    <string name="cancel">रद्द करें</string>
+
+    <string name="cat_trending">ट्रेंडिंग</string>
+    <string name="cat_music">संगीत</string>
+    <string name="cat_shayari">शायरी और स्टेटस</string>
+    <string name="cat_gaming">गेमिंग</string>
+    <string name="cat_movies">फिल्में</string>
+
+    <string name="loading_videos">वीडियो लोड हो रहे हैं…</string>
+    <string name="empty_feed">कोई वीडियो नहीं मिला। कृपया खोजें या लिंक पेस्ट करें।</string>
+    <string name="extracting_info">वीडियो जानकारी प्राप्त की जा रही है…</string>
+
+    <string name="download_quality_title">डाउनलोड क्वालिटी चुनें</string>
+    <string name="video_mp4_section">वीडियो (MP4)</string>
+    <string name="audio_mp3_section">ऑडियो / संगीत (MP3)</string>
+    <string name="download_started">बैकग्राउंड में डाउनलोड शुरू हो गया</string>
+
+    <string name="pip_mode">PiP मोड</string>
+    <string name="background_audio">बैकग्राउंड ऑडियो</string>
+
+    <string name="status_saver_title">व्हाट्सएप स्टेटस सेवर</string>
+    <string name="status_saver_desc">गैलरी में स्टेटस देखने और सेव करने के लिए WhatsApp .Statuses फ़ोल्डर चुनें।</string>
+    <string name="grant_status_folder">.Statuses फ़ोल्डर चुनें</string>
+    <string name="save_to_gallery">सेव करें</string>
+    <string name="status_saved">गैलरी में सेव हो गया</string>
+    <string name="no_statuses_found">चयनित फ़ोल्डर में कोई स्टेटस नहीं मिला।</string>
+
+    <string name="active_downloads">चल रहे डाउनलोड</string>
+    <string name="completed_downloads">सेव की गई फ़ाइलें</string>
+    <string name="no_downloads">अभी तक कोई डाउनलोड नहीं।</string>
+
+    <string name="history_title">देखने और डाउनलोड का इतिहास</string>
+    <string name="clear_history">इतिहास साफ़ करें</string>
+    <string name="no_history">आपका इतिहास खाली है।</string>
+
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="dark_mode">डार्क मोड</string>
+    <string name="dark_mode_desc">डार्क नेवी और लाइट थीम के बीच बदलें</string>
+    <string name="language">ऐप की भाषा</string>
+    <string name="lang_english">English</string>
+    <string name="lang_hindi">हिन्दी (Hindi)</string>
+    <string name="update_engine">इंजन अपडेट करें</string>
+    <string name="update_engine_desc">बिना APK अपडेट के yt-dlp कोर अपडेट करें</string>
+    <string name="updating_engine">डाउनलोडर इंजन अपडेट हो रहा है…</string>
+    <string name="engine_updated">इंजन सफलतापूर्वक अपडेट हो गया!</string>
+    <string name="engine_up_to_date">इंजन पहले से ही अपडेट है।</string>
+</resources>
