@@ -10,18 +10,39 @@ import com.yufiplay.app.R
 import com.yufiplay.app.data.HistoryItem
 import com.yufiplay.app.data.HistoryType
 import com.yufiplay.app.databinding.ItemHistoryBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class HistoryAdapter(
     private val onItemClick: (HistoryItem) -> Unit
 ) : ListAdapter<HistoryItem, HistoryAdapter.HistoryViewHolder>(DiffCallback) {
 
-    private val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
+    inner class HistoryViewHolder(private val binding: ItemHistoryBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: HistoryItem) {
+            binding.tvTitle.text = item.title
+            binding.tvChannel.text = item.channel
+            binding.tvBadge.text = if (item.type == HistoryType.DOWNLOADED) {
+                item.qualityLabel.ifBlank { "DOWNLOADED" }
+            } else {
+                "WATCHED"
+            }
+
+            Glide.with(binding.ivThumb.context)
+                .load(item.thumbnailUrl)
+                .placeholder(R.drawable.ic_yufiplay_logo)
+                .centerCrop()
+                .into(binding.ivThumb)
+
+            binding.root.setOnClickListener { onItemClick(item) }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
-        val binding = ItemHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemHistoryBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return HistoryViewHolder(binding)
     }
 
@@ -29,32 +50,13 @@ class HistoryAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class HistoryViewHolder(private val binding: ItemHistoryBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: HistoryItem) {
-            binding.tvHistoryTitle.text = item.title
-            val badge = if (item.type == HistoryType.DOWNLOADED) {
-                "Downloaded (${item.qualityLabel})"
-            } else {
-                "Watched"
-            }
-            binding.tvHistoryMeta.text = "$badge • ${item.channel} • ${dateFormat.format(Date(item.timestamp))}"
+    companion object {
+        private val DiffCallback = object : DiffUtil.ItemCallback<HistoryItem>() {
+            override fun areItemsTheSame(oldItem: HistoryItem, newItem: HistoryItem): Boolean =
+                oldItem.id == newItem.id && oldItem.timestamp == newItem.timestamp
 
-            Glide.with(binding.ivHistoryThumb)
-                .load(item.thumbnailUrl)
-                .placeholder(R.drawable.ic_yufiplay_logo)
-                .centerCrop()
-                .into(binding.ivHistoryThumb)
-
-            binding.root.setOnClickListener { onItemClick(item) }
+            override fun areContentsTheSame(oldItem: HistoryItem, newItem: HistoryItem): Boolean =
+                oldItem == newItem
         }
-    }
-
-    companion object DiffCallback : DiffUtil.ItemCallback<HistoryItem>() {
-        override fun areItemsTheSame(oldItem: HistoryItem, newItem: HistoryItem) =
-            oldItem.id == newItem.id && oldItem.type == newItem.type
-
-        override fun areContentsTheSame(oldItem: HistoryItem, newItem: HistoryItem) =
-            oldItem == newItem
     }
 }
