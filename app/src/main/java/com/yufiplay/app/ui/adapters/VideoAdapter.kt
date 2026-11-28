@@ -2,7 +2,6 @@ package com.yufiplay.app.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -17,8 +16,40 @@ class VideoAdapter(
     private val onShareClick: (VideoItem) -> Unit
 ) : ListAdapter<VideoItem, VideoAdapter.VideoViewHolder>(DiffCallback) {
 
+    inner class VideoViewHolder(private val binding: ItemVideoBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: VideoItem) {
+            binding.tvTitle.text = item.title
+            binding.tvDuration.text = item.formattedDuration()
+
+            val meta = buildString {
+                append(item.channel)
+                if (item.viewCountText.isNotBlank()) {
+                    append(" • ")
+                    append(item.viewCountText)
+                }
+            }
+            binding.tvChannel.text = meta
+
+            Glide.with(binding.ivThumbnail.context)
+                .load(item.thumbnailUrl)
+                .placeholder(R.drawable.ic_yufiplay_logo)
+                .centerCrop()
+                .into(binding.ivThumbnail)
+
+            binding.root.setOnClickListener { onPlayClick(item) }
+            binding.btnDownload.setOnClickListener { onDownloadClick(item) }
+            binding.btnShare.setOnClickListener { onShareClick(item) }
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
-        val binding = ItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemVideoBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return VideoViewHolder(binding)
     }
 
@@ -26,43 +57,13 @@ class VideoAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class VideoViewHolder(private val binding: ItemVideoBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    companion object {
+        private val DiffCallback = object : DiffUtil.ItemCallback<VideoItem>() {
+            override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean =
+                oldItem.id == newItem.id
 
-        fun bind(item: VideoItem) {
-            binding.tvVideoTitle.text = item.title
-            binding.tvVideoChannel.text = item.channel
-            binding.tvDuration.text = item.formattedDuration()
-
-            Glide.with(binding.ivThumbnail)
-                .load(item.thumbnailUrl)
-                .placeholder(R.drawable.ic_yufiplay_logo)
-                .centerCrop()
-                .into(binding.ivThumbnail)
-
-            binding.root.setOnClickListener { onPlayClick(item) }
-            binding.btnQuickDownload.setOnClickListener { onDownloadClick(item) }
-            binding.btnMoreOptions.setOnClickListener { view ->
-                PopupMenu(view.context, view).apply {
-                    menu.add(0, 1, 0, R.string.play)
-                    menu.add(0, 2, 1, R.string.download)
-                    menu.add(0, 3, 2, R.string.share)
-                    setOnMenuItemClickListener { menuItem ->
-                        when (menuItem.itemId) {
-                            1 -> onPlayClick(item)
-                            2 -> onDownloadClick(item)
-                            3 -> onShareClick(item)
-                        }
-                        true
-                    }
-                    show()
-                }
-            }
+            override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean =
+                oldItem == newItem
         }
-    }
-
-    companion object DiffCallback : DiffUtil.ItemCallback<VideoItem>() {
-        override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem) = oldItem == newItem
     }
 }
