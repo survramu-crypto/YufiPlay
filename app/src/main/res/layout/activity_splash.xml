@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/yufi_navy">
+
+    <View
+        android:id="@+id/viewSplashGlow"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:background="@drawable/bg_splash_glow"
+        app:layout_constraintBottom_toBottomOf="@id/ivSplashLogo"
+        app:layout_constraintEnd_toEndOf="@id/ivSplashLogo"
+        app:layout_constraintStart_toStartOf="@id/ivSplashLogo"
+        app:layout_constraintTop_toTopOf="@id/ivSplashLogo" />
+
+    <ImageView
+        android:id="@+id/ivSplashLogo"
+        android:layout_width="116dp"
+        android:layout_height="116dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_yufiplay_logo"
+        app:layout_constraintBottom_toTopOf="@id/tvSplashBrand"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/tvSplashBrand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:letterSpacing="0.16"
+        android:text="@string/brand_uppercase"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tvSplashTagline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivSplashLogo" />
+
+    <TextView
+        android:id="@+id/tvSplashTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:letterSpacing="0.2"
+        android:text="@string/splash_tagline"
+        android:textColor="@color/yufi_cyan"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSplashBrand" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
