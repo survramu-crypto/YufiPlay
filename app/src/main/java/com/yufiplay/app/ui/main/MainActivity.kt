@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.yufiplay.app.R
+import com.yufiplay.app.data.HistoryRepository
 import com.yufiplay.app.data.PrefsManager
 import com.yufiplay.app.databinding.ActivityMainBinding
 import com.yufiplay.app.engine.YtDlpEngine
@@ -30,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { /* Permissions handled gracefully at point of use */ }
+    ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
             val url = detectedClipboardUrl ?: return@setOnClickListener
             prefs.lastHandledClipboardUrl = url
             binding.cardClipboardBanner.visibility = View.GONE
+            HistoryRepository.addSearchHistory(this, url, isUrl = true)
             openDownloadSheetForUrl(url)
         }
 
@@ -96,6 +98,7 @@ class MainActivity : AppCompatActivity() {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
             val url = UrlUtils.extractSupportedUrl(sharedText)
             if (url != null) {
+                HistoryRepository.addSearchHistory(this, url, isUrl = true)
                 openDownloadSheetForUrl(url)
             }
         }
@@ -144,36 +147,24 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.POST_NOTIFICATIONS)
-            }
+            ) perms.add(Manifest.permission.POST_NOTIFICATIONS)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.READ_MEDIA_VIDEO)
-            }
+            ) perms.add(Manifest.permission.READ_MEDIA_VIDEO)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.READ_MEDIA_IMAGES)
-            }
+            ) perms.add(Manifest.permission.READ_MEDIA_IMAGES)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.READ_MEDIA_AUDIO)
-            }
+            ) perms.add(Manifest.permission.READ_MEDIA_AUDIO)
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
+            ) perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED
-            ) {
-                perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
+            ) perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         if (perms.isNotEmpty()) {
             permissionLauncher.launch(perms.toTypedArray())
