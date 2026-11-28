@@ -27,6 +27,9 @@ object MediaStoreSaver {
             "$displayName.$ext"
         }
 
+        // Separate folders for Music and Video inside YufiPlay
+        val folder = if (isAudio) "YufiPlay/Music" else "YufiPlay/Video"
+
         return FileInputStream(sourceFile).use { input ->
             saveStreamToPublicMedia(
                 context = context,
@@ -34,7 +37,7 @@ object MediaStoreSaver {
                 fileName = finalName,
                 mimeType = mimeType,
                 isAudio = isAudio,
-                subFolder = "YufiPlay"
+                subFolder = folder
             )
         }
     }
