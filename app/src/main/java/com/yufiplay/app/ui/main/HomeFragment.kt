@@ -13,11 +13,9 @@ import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.yufiplay.app.R
-import com.yufiplay.app.data.HistoryRepository
 import com.yufiplay.app.data.VideoItem
 import com.yufiplay.app.databinding.FragmentHomeBinding
 import com.yufiplay.app.engine.YtDlpEngine
@@ -25,7 +23,6 @@ import com.yufiplay.app.ui.adapters.SearchHistoryAdapter
 import com.yufiplay.app.ui.adapters.VideoAdapter
 import com.yufiplay.app.ui.player.DownloadBottomSheetFragment
 import com.yufiplay.app.ui.player.PlayerActivity
-import com.yufiplay.app.util.UrlUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -44,6 +41,7 @@ class HomeFragment : Fragment() {
     private var isLoadingMore = false
     private var refreshCounter = 0
     private val currentFeedList = mutableListOf<VideoItem>()
+    private val recentSearches = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,7 +65,6 @@ class HomeFragment : Fragment() {
         binding.rvVideos.layoutManager = layoutManager
         binding.rvVideos.adapter = videoAdapter
 
-        // Infinite scroll listener
         binding.rvVideos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -83,38 +80,25 @@ class HomeFragment : Fragment() {
         setupSearchBarAndHistory()
         setupCategoryChips()
         setupSwipeRefresh()
-        observeSearchHistory()
 
         loadFeed(buildPersonalizedSeedQuery(), count = currentFetchCount, reset = true)
     }
 
     private fun setupSearchBarAndHistory() {
-        searchHistoryAdapter = SearchHistoryAdapter(
-            onItemClick = { item ->
-                binding.etSearch.setText(item.queryOrUrl)
-                binding.cardSearchHistory.visibility = View.GONE
-                handleSearchOrUrl(item.queryOrUrl)
-            },
-            onDeleteClick = { item ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    HistoryRepository.deleteSearchItem(requireContext(), item.id)
-                }
-            }
-        )
-
+        searchHistoryAdapter = SearchHistoryAdapter()
         binding.rvSearchHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchHistory.adapter = searchHistoryAdapter
 
         binding.etSearch.doAfterTextChanged { text ->
             val query = text?.toString().orEmpty()
             binding.btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-            if (query.isNotEmpty() && binding.etSearch.hasFocus()) {
+            if (query.isNotEmpty() && binding.etSearch.hasFocus() && recentSearches.isNotEmpty()) {
                 binding.cardSearchHistory.visibility = View.VISIBLE
             }
         }
 
         binding.etSearch.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus && binding.etSearch.text?.isNotEmpty() == true) {
+            if (hasFocus && binding.etSearch.text?.isNotEmpty() == true && recentSearches.isNotEmpty()) {
                 binding.cardSearchHistory.visibility = View.VISIBLE
             }
         }
@@ -217,16 +201,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun observeSearchHistory() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                HistoryRepository.observeSearchHistory(requireContext()).collect { list ->
-                    searchHistoryAdapter.submitList(list)
-                }
-            }
-        }
-    }
-
     private fun buildPersonalizedSeedQuery(): String {
         val seeds = listOf(
             "trending india",
@@ -237,12 +211,16 @@ class HomeFragment : Fragment() {
         return seeds[refreshCounter % seeds.size]
     }
 
-    private fun handleSearchOrUrl(input: String) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            HistoryRepository.recordSearch(requireContext(), input, UrlUtils.isValidUrl(input))
-        }
+    private fun isDirectUrl(input: String): Boolean {
+        return input.startsWith("http://", ignoreCase = true) ||
+            input.startsWith("https://", ignoreCase = true)
+    }
 
-        if (UrlUtils.isValidUrl(input)) {
+    private fun handleSearchOrUrl(input: String) {
+        recentSearches.remove(input)
+        recentSearches.add(0, input)
+
+        if (isDirectUrl(input)) {
             binding.cardDirectUrlResult.visibility = View.VISIBLE
             binding.tvDirectUrlTitle.text = input
             binding.tvDirectUrlChannel.text = "Ready to Play or Download"
@@ -250,8 +228,8 @@ class HomeFragment : Fragment() {
             val directItem = VideoItem(
                 id = input.hashCode().toString(),
                 title = input,
-                channelName = "Direct Link",
-                durationText = "",
+                channel = "Direct Link",
+                durationSeconds = 0L,
                 thumbnailUrl = "",
                 webpageUrl = input
             )
