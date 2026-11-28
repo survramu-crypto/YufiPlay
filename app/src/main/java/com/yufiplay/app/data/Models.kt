@@ -3,16 +3,30 @@ package com.yufiplay.app.data
 import android.net.Uri
 import java.io.Serializable
 
+data class VideoComment(
+    val author: String,
+    val text: String,
+    val likes: String = "",
+    val timeAgo: String = ""
+) : Serializable
+
 data class VideoItem(
     val id: String,
     val title: String,
     val channel: String,
     val durationSeconds: Long,
     val thumbnailUrl: String,
-    val webpageUrl: String
+    val webpageUrl: String,
+    val channelUrl: String = "",
+    val subscriberCountText: String = "",
+    val likeCountText: String = "",
+    val dislikeCountText: String = "",
+    val commentCountText: String = "",
+    val viewCountText: String = "",
+    val comments: List<VideoComment> = emptyList()
 ) : Serializable {
     fun formattedDuration(): String {
-        if (durationSeconds <= 0L) return "LIVE"
+        if (durationSeconds <= 0L) return "HD"
         val hrs = durationSeconds / 3600
         val mins = (durationSeconds % 3600) / 60
         val secs = durationSeconds % 60
@@ -30,15 +44,16 @@ enum class DownloadFormat(
     val heightLimit: Int = 0,
     val audioBitrateKbps: Int = 0
 ) {
-    MP4_144("144p MP4", false, heightLimit = 144),
-    MP4_240("240p MP4", false, heightLimit = 240),
-    MP4_360("360p MP4", false, heightLimit = 360),
-    MP4_480("480p MP4", false, heightLimit = 480),
-    MP4_720("720p HD MP4", false, heightLimit = 720),
+    ORIGINAL("Original Quality (Best)", false, heightLimit = 0),
     MP4_1080("1080p Full HD MP4", false, heightLimit = 1080),
-    MP3_128("128kbps MP3", true, audioBitrateKbps = 128),
-    MP3_192("192kbps MP3", true, audioBitrateKbps = 192),
-    MP3_320("320kbps MP3", true, audioBitrateKbps = 320)
+    MP4_720("720p HD MP4", false, heightLimit = 720),
+    MP4_480("480p SD MP4", false, heightLimit = 480),
+    MP4_360("360p MP4", false, heightLimit = 360),
+    MP4_240("240p MP4", false, heightLimit = 240),
+    MP4_144("144p MP4", false, heightLimit = 144),
+    MP3_320("320kbps MP3 Music", true, audioBitrateKbps = 320),
+    MP3_192("192kbps MP3 Music", true, audioBitrateKbps = 192),
+    MP3_128("128kbps MP3 Music", true, audioBitrateKbps = 128)
 }
 
 enum class DownloadStatus {
@@ -70,6 +85,12 @@ data class HistoryItem(
     val durationSeconds: Long,
     val type: HistoryType,
     val qualityLabel: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class SearchHistoryItem(
+    val queryOrUrl: String,
+    val isUrl: Boolean,
     val timestamp: Long = System.currentTimeMillis()
 )
 
