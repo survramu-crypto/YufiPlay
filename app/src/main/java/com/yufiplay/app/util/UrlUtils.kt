@@ -4,14 +4,18 @@ import java.util.regex.Pattern
 
 object UrlUtils {
     private val URL_PATTERN = Pattern.compile(
-        "(https?://(?:www\\.|m\\.|mobile\\.)?(?:youtube\\.com|youtu\\.be|instagram\\.com|facebook\\.com|fb\\.watch)/[^\\s]+)",
+        "(https?://(?:www\\.|m\\.|mobile\\.|music\\.)?(?:youtube\\.com|youtu\\.be|instagram\\.com|facebook\\.com|fb\\.watch|fb\\.com)[^\\s\"'<>]*)",
         Pattern.CASE_INSENSITIVE
     )
 
     fun extractSupportedUrl(text: String?): String? {
         if (text.isNullOrBlank()) return null
         val matcher = URL_PATTERN.matcher(text.trim())
-        return if (matcher.find()) matcher.group(1) else null
+        if (matcher.find()) {
+            val raw = matcher.group(1) ?: return null
+            return raw.trimEnd('.', ',', ';', ')', ']', '}')
+        }
+        return null
     }
 
     fun isSupportedDirectUrl(input: String): Boolean {
