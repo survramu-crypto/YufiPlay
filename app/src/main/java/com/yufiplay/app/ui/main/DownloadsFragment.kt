@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.tabs.TabLayout
 import com.yufiplay.app.R
 import com.yufiplay.app.data.DownloadStatus
 import com.yufiplay.app.data.DownloadTask
@@ -29,6 +30,9 @@ class DownloadsFragment : Fragment() {
 
     private lateinit var activeAdapter: DownloadAdapter
     private lateinit var completedAdapter: DownloadAdapter
+
+    // 0 = All, 1 = Video, 2 = Music
+    private var selectedFilterTab = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,34 +62,64 @@ class DownloadsFragment : Fragment() {
         binding.rvCompletedDownloads.layoutManager = LinearLayoutManager(requireContext())
         binding.rvCompletedDownloads.adapter = completedAdapter
 
+        binding.tabDownloadFilter.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                selectedFilterTab = tab?.position ?: 0
+                refreshLists()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    DownloadManager.activeTasks.collect { tasks ->
-                        activeAdapter.submitList(tasks)
-                        binding.tvActiveHeader.visibility =
-                            if (tasks.isEmpty()) View.GONE else View.VISIBLE
-                        binding.rvActiveDownloads.visibility =
-                            if (tasks.isEmpty()) View.GONE else View.VISIBLE
-                        updateEmptyState()
+                    DownloadManager.activeTasks.collect {
+                        refreshLists()
                     }
                 }
                 launch {
-                    HistoryRepository.completedDownloadsFlow.collect { completed ->
-                        completedAdapter.submitList(completed)
-                        binding.tvCompletedHeader.visibility =
-                            if (completed.isEmpty()) View.GONE else View.VISIBLE
-                        updateEmptyState()
+                    HistoryRepository.completedDownloadsFlow.collect {
+                        refreshLists()
                     }
                 }
             }
         }
     }
 
-    private fun updateEmptyState() {
-        val noActive = DownloadManager.activeTasks.value.isEmpty()
-        val noCompleted = HistoryRepository.completedDownloadsFlow.value.isEmpty()
-        binding.tvNoDownloads.visibility = if (noActive && noCompleted) View.VISIBLE else View.GONE
+    private fun filterByTab(list: List<DownloadTask>): List<DownloadTask> {
+        return when (selectedFilterTab) {
+            1 -> list.filter { !it.format.isAudio } // Video
+            2 -> list.filter { it.format.isAudio }  // Music
+            else -> list                              // All
+        }
+    }
+
+    private fun refreshLists() {
+        val activeFiltered = filterByTab(DownloadManager.activeTasks.value)
+        val completedFiltered = filterByTab(HistoryRepository.completedDownloadsFlow.value)
+
+        activeAdapter.submitList(activeFiltered)
+        completedAdapter.submitList(completedFiltered)
+
+        binding.tvActiveHeader.visibility =
+            if (activeFiltered.isEmpty()) View.GONE else View.VISIBLE
+        binding.rvActiveDownloads.visibility =
+            if (activeFiltered.isEmpty()) View.GONE else View.VISIBLE
+
+        binding.tvCompletedHeader.visibility =
+            if (completedFiltered.isEmpty()) View.GONE else View.VISIBLE
+
+        val folderLabel = when (selectedFilterTab) {
+            1 -> "Saved Folder: Movies/YufiPlay/Video"
+            2 -> "Saved Folder: Music/YufiPlay/Music"
+            else -> "Folders: Movies/YufiPlay/Video & Music/YufiPlay/Music"
+        }
+        binding.tvFolderHint.text = folderLabel
+
+        binding.tvNoDownloads.visibility =
+            if (activeFiltered.isEmpty() && completedFiltered.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun playSavedFile(task: DownloadTask) {
