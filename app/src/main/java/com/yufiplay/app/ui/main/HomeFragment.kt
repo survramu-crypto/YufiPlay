@@ -12,7 +12,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,7 +40,7 @@ class HomeFragment : Fragment() {
     private var fetchJob: Job? = null
     private var isAllTabSelected = true
     private var currentCategoryQuery = "trending india"
-    private var currentFetchCount = 18
+    private var currentFetchCount = 16
     private var isLoadingMore = false
     private var refreshCounter = 0
     private val currentFeedList = mutableListOf<VideoItem>()
@@ -56,6 +55,8 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         videoAdapter = VideoAdapter(
             onPlayClick = { openPlayer(it) },
             onDownloadClick = { openDownloadSheet(it) },
@@ -81,96 +82,67 @@ class HomeFragment : Fragment() {
 
         setupSearchBarAndHistory()
         setupCategoryChips()
+        setupSwipeRefresh()
+        observeSearchHistory()
 
-        binding.swipeRefreshHome.setOnRefreshListener {
-            refreshCounter++
-            currentFetchCount = 18
-            if (isAllTabSelected) {
-                loadPersonalizedAllFeed(reset = true)
-            } else {
-                val variedQuery = if (refreshCounter % 2 == 1) {
-                    "$currentCategoryQuery new"
-                } else {
-                    "$currentCategoryQuery latest"
-                }
-                loadFeed(variedQuery, count = currentFetchCount, reset = true)
-            }
-        }
-
-        // Load "All" tab by default
-        isAllTabSelected = true
-        loadPersonalizedAllFeed(reset = true)
+        loadFeed(buildPersonalizedSeedQuery(), count = currentFetchCount, reset = true)
     }
 
     private fun setupSearchBarAndHistory() {
         searchHistoryAdapter = SearchHistoryAdapter(
             onItemClick = { item ->
-                binding.cardSearchHistory.visibility = View.GONE
                 binding.etSearch.setText(item.queryOrUrl)
-                binding.etSearch.setSelection(item.queryOrUrl.length)
-                hideKeyboard()
+                binding.cardSearchHistory.visibility = View.GONE
                 handleSearchOrUrl(item.queryOrUrl)
             },
             onDeleteClick = { item ->
-                HistoryRepository.removeSearchHistory(requireContext(), item.queryOrUrl)
+                viewLifecycleOwner.lifecycleScope.launch {
+                    HistoryRepository.deleteSearchItem(requireContext(), item.id)
+                }
             }
         )
+
         binding.rvSearchHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSearchHistory.adapter = searchHistoryAdapter
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                HistoryRepository.searchHistoryFlow.collect { list ->
-                    searchHistoryAdapter.submitList(list)
-                    if (list.isEmpty()) {
-                        binding.cardSearchHistory.visibility = View.GONE
-                    }
-                }
+        binding.etSearch.doAfterTextChanged { text ->
+            val query = text?.toString().orEmpty()
+            binding.btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+            if (query.isNotEmpty() && binding.etSearch.hasFocus()) {
+                binding.cardSearchHistory.visibility = View.VISIBLE
             }
         }
 
         binding.etSearch.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus && HistoryRepository.searchHistoryFlow.value.isNotEmpty()) {
+            if (hasFocus && binding.etSearch.text?.isNotEmpty() == true) {
                 binding.cardSearchHistory.visibility = View.VISIBLE
             }
         }
 
-        binding.etSearch.setOnClickListener {
-            if (HistoryRepository.searchHistoryFlow.value.isNotEmpty()) {
-                binding.cardSearchHistory.visibility = View.VISIBLE
-            }
-        }
-
-        binding.btnCloseSearchHistory.setOnClickListener {
-            binding.cardSearchHistory.visibility = View.GONE
-            hideKeyboard()
-        }
-
-        binding.btnClearAllSearchHistory.setOnClickListener {
-            HistoryRepository.clearSearchHistory(requireContext())
-            binding.cardSearchHistory.visibility = View.GONE
-        }
-
-        binding.etSearch.doAfterTextChanged { text ->
-            val str = text?.toString().orEmpty()
-            binding.btnClearSearch.visibility = if (str.isEmpty()) View.GONE else View.VISIBLE
-            val detected = UrlUtils.extractSupportedUrl(str)
-            if (detected != null && str.length > 15 && str.contains("://")) {
-                binding.cardSearchHistory.visibility = View.GONE
+        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val input = binding.etSearch.text?.toString()?.trim().orEmpty()
+                if (input.isNotEmpty()) {
+                    binding.cardSearchHistory.visibility = View.GONE
+                    hideKeyboard()
+                    handleSearchOrUrl(input)
+                }
+                true
+            } else {
+                false
             }
         }
 
         binding.btnClearSearch.setOnClickListener {
             binding.etSearch.text?.clear()
-            binding.cardDirectUrlResult.visibility = View.GONE
+            binding.cardSearchHistory.visibility = View.GONE
+            loadFeed(buildPersonalizedSeedQuery(), count = currentFetchCount, reset = true)
         }
 
         binding.btnPasteLink.setOnClickListener {
-            val clipboard =
-                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clipText = clipboard.primaryClip?.takeIf { it.itemCount > 0 }
-                ?.getItemAt(0)?.coerceToText(requireContext())?.toString()?.trim()
-            if (!clipText.isNullOrBlank()) {
+            val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipText = clipboard.primaryClip?.getItemAt(0)?.coerceToText(requireContext())?.toString()?.trim().orEmpty()
+            if (clipText.isNotEmpty()) {
                 binding.etSearch.setText(clipText)
                 binding.cardSearchHistory.visibility = View.GONE
                 hideKeyboard()
@@ -180,119 +152,133 @@ class HomeFragment : Fragment() {
             }
         }
 
-        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                val query = binding.etSearch.text?.toString()?.trim().orEmpty()
-                if (query.isNotEmpty()) {
-                    binding.cardSearchHistory.visibility = View.GONE
-                    hideKeyboard()
-                    handleSearchOrUrl(query)
-                }
-                true
+        binding.btnSearchGo.setOnClickListener {
+            val input = binding.etSearch.text?.toString()?.trim().orEmpty()
+            if (input.isNotEmpty()) {
+                binding.cardSearchHistory.visibility = View.GONE
+                hideKeyboard()
+                handleSearchOrUrl(input)
             } else {
-                false
+                Toast.makeText(requireContext(), "Enter a search term or video URL", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun setupCategoryChips() {
-        val chipQueries = mapOf(
-            R.id.chipTrending to "trending india",
-            R.id.chipMusic to "bollywood hindi songs",
-            R.id.chipShayari to "hindi shayari status video",
-            R.id.chipGaming to "gaming india live highlights",
-            R.id.chipMovies to "new hindi movies trailer"
-        )
-
         binding.chipGroupCategories.setOnCheckedStateChangeListener { _, checkedIds ->
             val checkedId = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
-            binding.cardSearchHistory.visibility = View.GONE
-            binding.cardDirectUrlResult.visibility = View.GONE
-            currentFetchCount = 18
+            currentFetchCount = 16
+            refreshCounter = 0
 
-            if (checkedId == R.id.chipAll) {
-                isAllTabSelected = true
-                loadPersonalizedAllFeed(reset = true)
+            when (checkedId) {
+                R.id.chipAll -> {
+                    isAllTabSelected = true
+                    loadFeed(buildPersonalizedSeedQuery(), count = currentFetchCount, reset = true)
+                }
+                R.id.chipTrending -> {
+                    isAllTabSelected = false
+                    currentCategoryQuery = "trending india"
+                    loadFeed(currentCategoryQuery, count = currentFetchCount, reset = true)
+                }
+                R.id.chipMusic -> {
+                    isAllTabSelected = false
+                    currentCategoryQuery = "latest hindi songs"
+                    loadFeed(currentCategoryQuery, count = currentFetchCount, reset = true)
+                }
+                R.id.chipShayari -> {
+                    isAllTabSelected = false
+                    currentCategoryQuery = "hindi shayari status"
+                    loadFeed(currentCategoryQuery, count = currentFetchCount, reset = true)
+                }
+                R.id.chipGaming -> {
+                    isAllTabSelected = false
+                    currentCategoryQuery = "bgmi gaming shorts"
+                    loadFeed(currentCategoryQuery, count = currentFetchCount, reset = true)
+                }
+                R.id.chipMovies -> {
+                    isAllTabSelected = false
+                    currentCategoryQuery = "latest movie trailers"
+                    loadFeed(currentCategoryQuery, count = currentFetchCount, reset = true)
+                }
+            }
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshHome.setOnRefreshListener {
+            refreshCounter++
+            currentFetchCount = 16
+            val query = if (isAllTabSelected) {
+                buildPersonalizedSeedQuery()
             } else {
-                isAllTabSelected = false
-                val query = chipQueries[checkedId] ?: return@setOnCheckedStateChangeListener
-                currentCategoryQuery = query
-                loadFeed(query, count = currentFetchCount, reset = true)
+                currentCategoryQuery
+            }
+            loadFeed(query, count = currentFetchCount, reset = true)
+        }
+    }
+
+    private fun observeSearchHistory() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                HistoryRepository.observeSearchHistory(requireContext()).collect { list ->
+                    searchHistoryAdapter.submitList(list)
+                }
             }
         }
     }
 
     private fun buildPersonalizedSeedQuery(): String {
-        val recentSearches = HistoryRepository.searchHistoryFlow.value
-            .filter { !it.isUrl }
-            .map { it.queryOrUrl }
-        val recentWatched = HistoryRepository.historyFlow.value
-            .map { it.channel }
-            .filter { it.isNotBlank() && it != "YouTube" && it != "Creator" }
-
-        val pool = mutableListOf(
-            "trending videos india",
-            "latest hindi songs",
+        val seeds = listOf(
+            "trending india",
+            "popular hindi songs",
             "viral shorts india",
-            "comedy videos india",
-            "tech review hindi",
-            "cricket highlights india"
+            "new movie trailers"
         )
-        pool.addAll(recentSearches.take(4))
-        pool.addAll(recentWatched.take(4))
-        return pool.shuffled().first()
-    }
-
-    private fun loadPersonalizedAllFeed(reset: Boolean) {
-        val seed = buildPersonalizedSeedQuery()
-        currentCategoryQuery = seed
-        loadFeed(seed, count = currentFetchCount, reset = reset)
+        return seeds[refreshCounter % seeds.size]
     }
 
     private fun handleSearchOrUrl(input: String) {
-        val directUrl = UrlUtils.extractSupportedUrl(input)
-        if (directUrl != null) {
-            HistoryRepository.addSearchHistory(requireContext(), directUrl, isUrl = true)
-            fetchJob?.cancel()
-            fetchJob = viewLifecycleOwner.lifecycleScope.launch {
-                setLoading(true)
-                try {
-                    val item = YtDlpEngine.extractDirectInfo(directUrl)
-                    setLoading(false)
-                    showDirectUrlActionCard(item)
-                    openDownloadSheet(item)
-                } catch (e: Exception) {
-                    setLoading(false)
-                    Toast.makeText(
-                        requireContext(),
-                        e.message ?: "Failed to extract URL",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+        viewLifecycleOwner.lifecycleScope.launch {
+            HistoryRepository.recordSearch(requireContext(), input, UrlUtils.isValidUrl(input))
+        }
+
+        if (UrlUtils.isValidUrl(input)) {
+            binding.cardDirectUrlResult.visibility = View.VISIBLE
+            binding.tvDirectUrlTitle.text = input
+            binding.tvDirectUrlChannel.text = "Ready to Play or Download"
+
+            val directItem = VideoItem(
+                id = input.hashCode().toString(),
+                title = input,
+                channelName = "Direct Link",
+                durationText = "",
+                thumbnailUrl = "",
+                webpageUrl = input
+            )
+
+            binding.btnDirectUrlPlay.setOnClickListener {
+                openPlayer(directItem)
+            }
+            binding.btnDirectUrlDownload.setOnClickListener {
+                openDownloadSheet(directItem)
             }
         } else {
-            HistoryRepository.addSearchHistory(requireContext(), input, isUrl = false)
             binding.cardDirectUrlResult.visibility = View.GONE
             isAllTabSelected = false
             currentCategoryQuery = input
-            currentFetchCount = 20
+            currentFetchCount = 16
             loadFeed(input, count = currentFetchCount, reset = true)
         }
-    }
-
-    private fun showDirectUrlActionCard(item: VideoItem) {
-        binding.cardDirectUrlResult.visibility = View.VISIBLE
-        binding.tvDirectUrlTitle.text = item.title
-        binding.tvDirectUrlChannel.text = "${item.channel} • ${item.formattedDuration()}"
-        binding.btnDirectUrlPlay.setOnClickListener { openPlayer(item) }
-        binding.btnDirectUrlDownload.setOnClickListener { openDownloadSheet(item) }
     }
 
     private fun loadFeed(query: String, count: Int, reset: Boolean) {
         fetchJob?.cancel()
         fetchJob = viewLifecycleOwner.lifecycleScope.launch {
-            if (reset) setLoading(true)
+            if (reset && currentFeedList.isEmpty()) {
+                setLoading(true)
+            }
             binding.tvEmptyHome.visibility = View.GONE
+
             try {
                 val items = YtDlpEngine.searchYouTube(query, count)
                 if (reset) {
@@ -327,7 +313,7 @@ class HomeFragment : Fragment() {
     private fun loadMoreVideos() {
         isLoadingMore = true
         binding.progressLoadMore.visibility = View.VISIBLE
-        currentFetchCount += 15
+        currentFetchCount += 16
         val nextQuery = if (isAllTabSelected) {
             buildPersonalizedSeedQuery()
         } else {
