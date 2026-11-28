@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YufiPlay</string>
+    <string name="brand_uppercase">YUFIPLAY</string>
+    <string name="splash_tagline">STREAM • PLAY • SAVE</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_status">Status</string>
+    <string name="nav_downloads">Downloads</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="search_hint">Search or paste YT / Insta / FB link</string>
+    <string name="paste_link">Paste Link</string>
+    <string name="clear">Clear</string>
+    <string name="clipboard_detected_title">Copied Link Detected — Download Now?</string>
+    <string name="download">Download</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="play">Play</string>
+    <string name="share">Share</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="cat_trending">Trending</string>
+    <string name="cat_music">Music</string>
+    <string name="cat_shayari">Shayari &amp; Status</string>
+    <string name="cat_gaming">Gaming</string>
+    <string name="cat_movies">Movies</string>
+
+    <string name="loading_videos">Loading videos…</string>
+    <string name="empty_feed">No videos found. Try searching or pasting a public URL.</string>
+    <string name="extracting_info">Extracting video info…</string>
+
+    <string name="download_quality_title">Choose Download Quality</string>
+    <string name="video_mp4_section">Video (MP4)</string>
+    <string name="audio_mp3_section">Audio / Music (MP3)</string>
+    <string name="download_started">Download started in background</string>
+
+    <string name="pip_mode">PiP Mode</string>
+    <string name="background_audio">Background Audio</string>
+
+    <string name="status_saver_title">WhatsApp Status Saver</string>
+    <string name="status_saver_desc">Grant access to WhatsApp .Statuses folder to view and save statuses directly to your Gallery.</string>
+    <string name="grant_status_folder">Select .Statuses Folder</string>
+    <string name="save_to_gallery">Save</string>
+    <string name="status_saved">Saved to Gallery</string>
+    <string name="no_statuses_found">No statuses found in selected folder.</string>
+
+    <string name="active_downloads">Active Downloads</string>
+    <string name="completed_downloads">Saved Files</string>
+    <string name="no_downloads">No downloads yet.</string>
+
+    <string name="history_title">Watch &amp; Download History</string>
+    <string name="clear_history">Clear History</string>
+    <string name="no_history">Your watch and download history is empty.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode_desc">Switch between Dark Navy and Light theme</string>
+    <string name="language">App Language</string>
+    <string name="lang_english">English</string>
+    <string name="lang_hindi">हिन्दी (Hindi)</string>
+    <string name="update_engine">Update Engine</string>
+    <string name="update_engine_desc">Update yt-dlp core directly without APK update</string>
+    <string name="updating_engine">Updating downloader engine…</string>
+    <string name="engine_updated">Engine updated successfully!</string>
+    <string name="engine_up_to_date">Engine is already up to date.</string>
+</resources>

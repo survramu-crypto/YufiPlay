@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="yufi_crimson">#FF1E42</color>
+    <color name="yufi_cyan">#00E5FF</color>
+    <color name="yufi_navy">#0B1021</color>
+    <color name="yufi_navy_card">#141C36</color>
+    <color name="yufi_light_bg">#F6F8FC</color>
+    <color name="yufi_light_surface">#FFFFFF</color>
+    <color name="yufi_text_primary_light">#0F172A</color>
+    <color name="yufi_text_secondary_light">#475569</color>
+    <color name="yufi_text_primary_dark">#F8FAFC</color>
+    <color name="yufi_text_secondary_dark">#94A3B8</color>
+</resources>
